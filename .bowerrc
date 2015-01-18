@@ -1,0 +1,18 @@
+{
+  "name": "js-search",
+  "version": "1.0.0",
+  "description": "Measuring client-side search performance by example",
+  "authors": [
+    "Jan Petzold"
+  ],
+  "license": "MIT",
+  "private": true,
+  "directory": "libs"
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

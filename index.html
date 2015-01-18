@@ -1,0 +1,156 @@
+<html ng-app="search">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<link rel="stylesheet" type="text/css" href="libs/bootstrap/dist/css/bootstrap.css">
+		<link rel="stylesheet" type="text/css" href="css/search.css">
+	</head>
+	<body class="container">
+		<div ng-controller="SearchController as searchCtrl">
+			<h1 ng-cloak>Suche in {{searchCtrl.amount}} Datensätzen</h1>
+			<div class="form-inline">
+				<span>Anzahl der Datensätze:</span>
+				<div class="form-group">
+					<label>
+						<input type="radio" ng-model="searchCtrl.amount" value="1000" ng-change="searchCtrl.changeAmount(1000)">1.000
+					</label>
+				</div>
+				<div class="form-group">
+					<label>
+						<input type="radio" ng-model="searchCtrl.amount" value="10000" ng-change="searchCtrl.changeAmount(10000)">10.000
+					</label>
+				</div>
+				<div class="form-group">
+					<label>
+						<input type="radio" ng-model="searchCtrl.amount" value="100000" ng-change="searchCtrl.changeAmount(100000)">100.000
+					</label>
+				</div>
+			</div>
+
+			<div class="text-right">
+				<div class="input-group search-field text-right">
+		  			<input type="text" class="form-control" placeholder="Suchbegriff" 
+		  				ng-model="searchCtrl.term"
+		  				ng-change="searchCtrl.search(searchCtrl.term)">
+		  			<span class="input-group-addon">
+		  				<span class="glyphicon glyphicon-search"></span>		
+					</span>
+				</div>
+			</div>
+
+			<div class="form-inline">
+				<span>Suchverfahren:</span>
+				<div class="form-group">
+					<label>
+						<input type="radio" ng-model="searchCtrl.type" value="Angular" ng-change="searchCtrl.changeType('Angular')">Standardsuche
+					</label>
+				</div>
+				<div class="form-group">
+					<label>
+						<input type="radio" ng-model="searchCtrl.type" value="Fuse" ng-change="searchCtrl.changeType('Fuse')">Ähnlichkeitssuche
+					</label>
+				</div>
+				<div class="form-group">
+					<label>
+						<input type="radio" ng-model="searchCtrl.type" value="Bloomfilter" ng-change="searchCtrl.changeType('Bloomfilter')">Bloomfilter
+					</label>
+				</div>
+			</div>
+
+			<h4>Ergebnistabelle filtern</h4>
+
+			<div class="form-inline">
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="searchCtrl.categories.lastName">Nachname
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="searchCtrl.categories.firstName">Vorname
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="searchCtrl.categories.street">Straße
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="searchCtrl.categories.zipCode">PLZ
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="searchCtrl.categories.city">Stadt
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="searchCtrl.categories.stateName">Bundesland
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="searchCtrl.categories.emailAddress">E-Mail
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="searchCtrl.categories.phone">Telefon
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" ng-model="searchCtrl.categories.dateOfBirthFormatted">Geburtstag
+					</label>
+				</div>
+			</div>
+
+			<h4 ng-cloak>Ergebnisse (insgesamt {{searchCtrl.dataset.length}}):</h4>
+
+			<table class="table table-striped table-bordered table-condensed">
+				<tr>
+					<th>Nachname</th>
+					<th>Vorname</th>
+					<th>Straße und Hausnummer</th>
+					<th>PLZ</th>
+					<th>Stadt</th>
+					<th>Bundesland</th>
+					<th>E-Mail</th>
+					<th>Telefon</th>
+					<th>Geburtstag</th>
+				</tr>
+
+				<tr ng-show="!searchCtrl.dataset">
+					<td colspan="9" class="text-center">Datensätze werden geladen...</td>
+				</tr>
+
+				<!--<tr ng-repeat="entry in searchCtrl.dataset | match:searchCtrl.term track by entry.id">-->
+				<tr ng-repeat="entry in searchCtrl.dataset track by entry.id">
+					<td ng-bind="::entry.lastName"></td>
+					<td ng-bind="::entry.firstName"></td>
+					<td ng-bind="::entry.street"></td>
+					<td ng-bind="::entry.zipCode"></td>
+					<td ng-bind="::entry.city"></td>
+					<td ng-bind="::entry.stateName"></td>
+					<td ng-bind="::entry.emailAddress"></td>
+					<td ng-bind="::entry.phoneNumber"></td>
+					<td ng-bind="::entry.dateOfBirthFormatted"></td>
+				</tr>
+			</table>
+
+			<p ng-show="searchCtrl.dataset.length === 1000">Es wurden noch weitere Ergebnisse gefunden. Bitte geben Sie einen präziseren Suchbegriff ein.</p>
+
+		</div>
+
+		<script type="text/javascript" src="libs/angular/angular.js"></script>
+		<script type="text/javascript" src="libs/fuse.js/src/fuse.js"></script>
+		<script type="text/javascript" src="libs/bloomfilter/bloomfilter.js"></script>
+
+		<script type="text/javascript" src="js/search/Module.js"></script>
+		<script type="text/javascript" src="js/search/DefaultAngularFilterService.js"></script>
+		<script type="text/javascript" src="js/search/SearchController.js"></script>
+		<script type="text/javascript" src="js/search/SearchFilter.js"></script>
+	</body>
+</head>
