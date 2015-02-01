@@ -1,4 +1,4 @@
-angular.module('search').controller('SearchController', ['$http', 'DefaultAngularFilterService', function SearchController($http, DefaultAngularFilterService) {
+angular.module('search').controller('SearchController', ['$scope', '$http', 'DefaultAngularFilterService', 'BloomSearchService', function SearchController($scope, $http, DefaultAngularFilterService, BloomSearchService) {
 	var MAX_SEARCH_RESULTS = 1000;
 
 	var self = this;
@@ -9,8 +9,15 @@ angular.module('search').controller('SearchController', ['$http', 'DefaultAngula
 	self.amount = 1000;
 
 	// Default search type
-	self.type = 'Angular';
+	self.type = 'Bloomfilter';
 	self.term = '';
+	self.webworkers = true;
+
+	// Four WebWorkers by default
+	self.worker1;
+	self.worker2;
+	self.worker3;
+	self.worker4;
 
 	self.init = function() {
 		var startData = new Date().getTime();
@@ -46,7 +53,7 @@ angular.module('search').controller('SearchController', ['$http', 'DefaultAngula
 			self.bloomDataset = [];
 
 			for(var i = 0; i < self.initialDataset.length; i++) {
-				var bloom = new BloomFilter(32 * 256, 16);
+				var bloom = new BloomFilter(32 * 256, 6);
 
 				bloom.add(self.initialDataset[i].lastName);
 				bloom.add(self.initialDataset[i].firstName);
@@ -61,12 +68,52 @@ angular.module('search').controller('SearchController', ['$http', 'DefaultAngula
 				self.bloomDataset.push(bloom);
 			}
 
-			console.log('Bloom data prepared ' + (new Date().getTime() - startBloom));
+			// if WebWorkers are enabled, split dataset in 4 parts since we say that we want foru threads to run in parallel
+			if(self.webworkers) {
+				var startWebWorker = new Date().getTime();
+
+				// Initialize the WebWorker
+				self.worker1 = new Worker('js/search/BloomSearchWorker.js');
+				self.worker2 = new Worker('js/search/BloomSearchWorker.js');
+				self.worker3 = new Worker('js/search/BloomSearchWorker.js');
+				self.worker4 = new Worker('js/search/BloomSearchWorker.js');
+
+				// add event listener to WebWorkers
+				BloomSearchService.addEventListenersForWorkers(
+					[self.worker1, self.worker2, self.worker3, self.worker4], 
+					self.bloom.webworker.handleResult, 
+					self.bloom.webworker.handleError);
+
+				console.log('Ramp-up WebWorkers took ' + (new Date().getTime() - startWebWorker) + 'ms');
+
+				// serialize dataset
+				var startSerializing = new Date().getTime();
+				var serializedBloomDataset = BloomSearchService.serializeBloomData(self.bloomDataset);
+				console.log('Serializing data took ' + (new Date().getTime() - startSerializing) + 'ms');
+
+				//slice dataset for the workers so each one gets one fourth of the original dataset
+				var slicedDataset = BloomSearchService.sliceData(self.initialDataset, serializedBloomDataset);
+
+				var startMessaging = new Date().getTime();
+				
+				self.worker1.postMessage(BloomSearchService.getWebWorkerInitMessage(0, slicedDataset));
+				self.worker2.postMessage(BloomSearchService.getWebWorkerInitMessage(1, slicedDataset));
+				self.worker3.postMessage(BloomSearchService.getWebWorkerInitMessage(2, slicedDataset));
+				self.worker4.postMessage(BloomSearchService.getWebWorkerInitMessage(3, slicedDataset));
+
+				console.log('Messaging to WebWorkers took ' + (new Date().getTime() - startMessaging) + 'ms');
+			}
+
+			console.log('Bloom data prepared in ' + (new Date().getTime() - startBloom) + 'ms');
 		})
 	};
 
 	self.changeAmount = function(newAmount) {
 		self.amount = newAmount;
+
+		if(newAmount > 100000) {
+			self.type = 'Bloomfilter';
+		}
 
 		// Re-initialize controller
 		self.initialDataset = [];
@@ -80,6 +127,7 @@ angular.module('search').controller('SearchController', ['$http', 'DefaultAngula
 		// Re-initialize controller
 		self.initialDataset = [];
 		self.term = '';
+
 		self.init();
 	}
 
@@ -105,21 +153,84 @@ angular.module('search').controller('SearchController', ['$http', 'DefaultAngula
 			}
 		} else if(self.type === 'Bloomfilter') {
 			var startBloom = new Date().getTime();
+
 			var result = [];
 
-			for(var i = 0; i < self.bloomDataset.length; i++) {
-				if(self.bloomDataset[i].test(term)) {
-					result.push(self.initialDataset[i]);
+			if(self.webworkers) {
+				self.bloom.webworker.resetWorkerCount();
+
+				// search via WebWorker
+				self.worker1.postMessage({
+					'type': 'search',
+					'term': term
+				});
+				self.worker2.postMessage({
+					'type': 'search',
+					'term': term
+				});
+				self.worker3.postMessage({
+					'type': 'search',
+					'term': term
+				});
+				self.worker4.postMessage({
+					'type': 'search',
+					'term': term
+				});
+			} else {
+				// perform search directly
+				for(var i = 0; i < self.bloomDataset.length; i++) {
+					if(self.bloomDataset[i].test(term)) {
+						result.push(self.initialDataset[i]);
+					}
 				}
+				console.log('Bloom search took ' + (new Date().getTime() - startBloom) + 'ms and found ' + result.length + ' results');
+
+				self.dataset = self.limit(result, MAX_SEARCH_RESULTS);
 			}
-
-			console.log('Bloom search took ' + (new Date().getTime() - startBloom) + ', results: ' + result.length);
-
-			self.dataset = self.limit(result, MAX_SEARCH_RESULTS);
 		}
 	}
 
 	// TODO: Put following stuff in service
+
+
+	// Bloom-related methods for workers
+	self.bloom = {
+		webworker: {
+			workerCount: 0,
+			workerResults: []
+		}
+	};
+
+	self.bloom.webworker.resetWorkerCount = function() {
+		self.bloom.webworker.workerCount = 0;
+		self.bloom.webworker.workerResults = [];
+		self.bloom.webworker.startSearch = new Date().getTime();
+	};
+
+	self.bloom.webworker.handleResult = function(workerResult) {			
+		self.bloom.webworker.workerCount++;
+
+		if(workerResult.data.length > 0) {
+			self.bloom.webworker.workerResults.push(workerResult.data);
+		}
+		
+		if(self.bloom.webworker.workerCount >= 4) {
+			// all workers will return their workerResults in an array so merge them
+			var dataset = BloomSearchService.mergeBloomResults(self.bloom.webworker.workerResults);
+			self.dataset = self.limit(dataset, MAX_SEARCH_RESULTS);
+
+			console.log('All results received - Bloom WebWorker search took ' + (new Date().getTime() - self.bloom.webworker.startSearch) + 'ms and found ' + dataset.length + ' results');
+
+			// We need to call $scope.$apply here since WebWorker responses don't call a digest cycle
+			$scope.$apply();
+		}
+	};
+
+	self.bloom.webworker.handleError = function() {
+		console.log('Error retrieved');
+	};
+
+	// generic methods
 	self.limit = function(data, limit) {
 		return data.slice(0, limit);
 	};

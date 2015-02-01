@@ -25,6 +25,16 @@
 						<input type="radio" ng-model="searchCtrl.amount" value="100000" ng-change="searchCtrl.changeAmount(100000)">100.000
 					</label>
 				</div>
+				<div class="form-group">
+					<label>
+						<input type="radio" ng-model="searchCtrl.amount" value="250000" ng-change="searchCtrl.changeAmount(250000)">250.000
+					</label>
+				</div>
+				<div class="form-group">
+					<label>
+						<input type="radio" ng-model="searchCtrl.amount" value="500000" ng-change="searchCtrl.changeAmount(500000)">500.000
+					</label>
+				</div>
 			</div>
 
 			<div class="text-right">
@@ -42,12 +52,16 @@
 				<span>Suchverfahren:</span>
 				<div class="form-group">
 					<label>
-						<input type="radio" ng-model="searchCtrl.type" value="Angular" ng-change="searchCtrl.changeType('Angular')">Standardsuche
+						<input type="radio" ng-model="searchCtrl.type" value="Angular" 
+							ng-change="searchCtrl.changeType('Angular')"
+							ng-disabled="searchCtrl.amount > 100000">Standardsuche
 					</label>
 				</div>
 				<div class="form-group">
 					<label>
-						<input type="radio" ng-model="searchCtrl.type" value="Fuse" ng-change="searchCtrl.changeType('Fuse')">Ähnlichkeitssuche
+						<input type="radio" ng-model="searchCtrl.type" value="Fuse" 
+							ng-change="searchCtrl.changeType('Fuse')"
+							ng-disabled="searchCtrl.amount > 100000">Ähnlichkeitssuche
 					</label>
 				</div>
 				<div class="form-group">
@@ -55,6 +69,12 @@
 						<input type="radio" ng-model="searchCtrl.type" value="Bloomfilter" ng-change="searchCtrl.changeType('Bloomfilter')">Bloomfilter
 					</label>
 				</div>
+			</div>
+
+			<div class="checkbox" ng-show="searchCtrl.type === 'Bloomfilter'">
+				<label>
+					<input type="checkbox" ng-model="searchCtrl.webworkers">Webworker
+				</label>
 			</div>
 
 			<h4>Ergebnistabelle filtern</h4>
@@ -150,6 +170,7 @@
 
 		<script type="text/javascript" src="js/search/Module.js"></script>
 		<script type="text/javascript" src="js/search/DefaultAngularFilterService.js"></script>
+		<script type="text/javascript" src="js/search/BloomSearchService.js"></script>
 		<script type="text/javascript" src="js/search/SearchController.js"></script>
 		<script type="text/javascript" src="js/search/SearchFilter.js"></script>
 	</body>
