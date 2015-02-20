@@ -1,3 +1,7 @@
+/**
+ * This search service and some related methods have been extracted from the Angular source code to make it
+ * available via service.
+ */
 angular.module('search').factory('AngularFilterService', function AngularFilterService() {
 	var createPredicateFn = function(expression, comparator, matchAgainstAnyProp) {
 		var shouldMatchPrimitives = isObject(expression) && ('$' in expression);
@@ -83,11 +87,11 @@ angular.module('search').factory('AngularFilterService', function AngularFilterS
 
 	var isObject = function(value) {
 	  return value !== null && typeof value === 'object';
-	}
+	};
 
 	var isFunction = function(value) {
 		return typeof value === 'function';
-	}
+	};
 
 	var isArray = Array.isArray;
 

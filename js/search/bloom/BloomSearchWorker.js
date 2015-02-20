@@ -5,7 +5,6 @@ var bloomDataset = [];
 
 self.addEventListener('message', handleMessage, false);
 
-// TODO: Change the worker so it constructs the BloomFilter itself and does not get all data passed
 function handleMessage(e) {
 	if(e.data.type === 'init') {
 		// handle initialization
@@ -16,16 +15,24 @@ function handleMessage(e) {
 		// create Bloom filter for dataset
 		var datasetLength = originalDataset.length;
 
+		// determine bit size for BloomFilter - 2% error tolerance are generally fine
+		var bits = datasetLength * 5;
+
+		// be more generous for bigger result sets - works pretty well
+		if(datasetLength > 99999) {
+			bits = datasetLength / 100;
+		}
+
 		for(var i = 0; i < datasetLength; i++) {
-			var bloom = new BloomFilter(32 * 256, 6);
+			var bloom = new BloomFilter(bits, 6);
 
 			bloom.add(originalDataset[i].lastName);
 			bloom.add(originalDataset[i].firstName);
 			bloom.add(originalDataset[i].street);
-			bloom.add(originalDataset[i].zipCode);
+			bloom.add(originalDataset[i].zip);
 			bloom.add(originalDataset[i].city);
 			bloom.add(originalDataset[i].stateName);
-			bloom.add(originalDataset[i].emailAddress);
+			bloom.add(originalDataset[i].email);
 			bloom.add(originalDataset[i].phone);
 			bloom.add(originalDataset[i].dateOfBirthFormatted);
 
@@ -40,7 +47,7 @@ function handleMessage(e) {
 	}
 }
 
-function startSearch(term, originalData) {
+function startSearch(term) {
 	var result = [];
 	
 	for(var i = 0; i < bloomDataset.length; i++) {

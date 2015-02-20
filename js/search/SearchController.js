@@ -10,105 +10,110 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 	self.amount = 1000;
 
 	// Default search type
-	self.type = 'Bloomfilter';
+	self.type = 'Angular';
 	self.term = '';
-	self.webworkers = true;
+	self.webworkers = false;
 
 	// store results from BloomFilter in Controller since they get updated via event
 	self.bloomWorkerResults = [];
 
-	self.logVisible = false;
+	self.logVisible = true;
 	self.log = LogService;
 
-	self.init = function() {
-		var jsonBench = LogService.startBenchmark('Fetch JSON data');
+	/**
+	 * Initialize the Controller.
+	 * @param newDataAmount Optional parameter indicating that the amount of data to be searched was changed
+	 */
+	self.init = function(newDataAmount) {
+		// load data once the user selected a different source dataset
+		if(newDataAmount) {
+			var jsonBench = LogService.startBenchmark('Fetch JSON data');
+			$http.get('data/' + self.amount + '.json').success(function (data) {
+				LogService.stopBenchmark(jsonBench);
+				self.setDataset(data, true);
+			});
+		} else {
+			self.setDataset(self.initialDataset, false);
+		}
+	};
 
-		// load data
-		$http.get('data/' + self.amount + '.json').success(function(data) {
-			LogService.stopBenchmark(jsonBench);
+	/**
+	 * Set the dataset that builds the base for our search
+	 *
+	 * @param data The data (JSON)
+	 * @param parse {boolean} dtermines whether the data needs to be parsed
+	 */
+	self.setDataset = function(data, parse) {
+		// set correct federal states and format birthday
+		if(parse) {
+			var parseBench = LogService.startBenchmark('Parsing JSON data');
+			data = SearchService.parseJson(data);
+			LogService.stopBenchmark(parseBench);
+		}
 
-			// set correct federal states and format birthday
-			var startFormatting = new Date().getTime();
-			for(var i = 0; i < data.length; i++) {
-				data[i].stateName = SearchService.federalStates[data[i].state];
-				data[i].dateOfBirthFormatted = SearchService.getFormattedDate(data[i].dateOfBirth);
-			}
+		// store initial dataset for later reference
+		self.initialDataset = data;
 
-			// store initial dataset for later reference
-			if(self.initialDataset.length == 0) {
-				self.initialDataset = data;
-			}
-
-			console.log('Data formatted in ' + (new Date().getTime() - startFormatting));
-
-			self.dataset = SearchService.limit(data, MAX_SEARCH_RESULTS);
-
-			// Prepare Fuse data
-			var startFuse = new Date().getTime();
+		// Prepare Fuse data
+		if(self.type === 'Fuse') {
+			var fusePrepareBench = LogService.startBenchmark('Preparing Fuse data');
 			self.fuseDataset = FuseService.initFuseDataset(self.initialDataset);
-			console.log('Fuse data prepared in ' + (new Date().getTime() - startFuse));
+			LogService.stopBenchmark(fusePrepareBench);
+		}
 
-			// Prepare Bloom data
-			var startBloom = new Date().getTime();
-
+		// Prepare Bloom data
+		if(self.type === 'Bloomfilter') {
+			var bloomPrepareBench = LogService.startBenchmark('Preparing Bloomfilter data');
 			self.bloomDataset = BloomSearchService.initBloomData(self.initialDataset);
+			LogService.stopBenchmark(bloomPrepareBench);
 
-			// if WebWorkers are enabled, split dataset in 4 parts since we say that we want foru threads to run in parallel
-			if(self.webworkers) {
+			// if WebWorkers are enabled, split dataset in 4 parts since we say that we want four threads to run in parallel
+			if (self.webworkers) {
+				var bloomWebWorkerBench = LogService.startBenchmark('Initializing WebWorkers for Bloomfilter');
 				BloomSearchService.initWorkerArray(self.initialDataset);
+				LogService.stopBenchmark(bloomWebWorkerBench);
 			}
+		}
 
-			console.log('Bloom data prepared in ' + (new Date().getTime() - startBloom) + 'ms');
-		})
+		// simply limit result set to 1000 - no pagination here and we don't want to run into rendering issues
+		self.dataset = SearchService.limit(self.initialDataset, MAX_SEARCH_RESULTS);
 	};
 
 	self.changeAmount = function(newAmount) {
 		self.amount = newAmount;
-
-		if(newAmount > 100000) {
-			self.type = 'Bloomfilter';
-		}
-
-		// Re-initialize controller
-		self.initialDataset = [];
-		self.term = '';
-		self.init();
-	}
+		self.reset();
+		self.init(true);
+	};
 
 	self.changeType = function(newType) {
 		self.type = newType;
-
-		// Re-initialize controller
-		self.initialDataset = [];
-		self.term = '';
-
+		self.reset();
 		self.init();
-	}
+	};
+
+	self.reset = function() {
+		self.term = '';
+	};
 
 	self.search = function(term) {
 		// Determine current type and search based on that choice
 		if(self.type === 'Angular') {
-			var startAngular = new Date().getTime();
+			var angularSearch = LogService.startBenchmark('Search with Angular');
 			var result = AngularFilterService.filterItems(self.initialDataset, term);
-
-			console.log('Angular search took ' + (new Date().getTime() - startAngular) + ', results: ' + result.length);
+			LogService.stopBenchmark(angularSearch);
 
 			self.dataset = SearchService.limit(result, MAX_SEARCH_RESULTS);
 		} else if(self.type === 'Fuse') {
 			if(self.term === '') {
 				self.dataset = self.initialDataset;
 			} else {
-				var startFuse = new Date().getTime();
-
-				var result = self.fuseDataset.search(term);	
-
-				console.log('Fuse search took ' + (new Date().getTime() - startFuse) + ', results: ' + result.length);
+				var fuseSearch = LogService.startBenchmark('Search with fuse.js');
+				var result = self.fuseDataset.search(term);
+				LogService.stopBenchmark(fuseSearch);
 
 				self.dataset = SearchService.limit(result, MAX_SEARCH_RESULTS);
 			}
 		} else if(self.type === 'Bloomfilter') {
-			var startBloom = new Date().getTime();
-
 			var result = [];
 
 			if(self.webworkers) {
@@ -116,15 +121,17 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 				BloomSearchService.resetWorkerCount();
 
 				// init search via WebWorker
+				self.bloomWebWorkerSearch = LogService.startBenchmark('Search with Bloomfilter (WebWorker)');
 				BloomSearchService.search(term);
 			} else {
 				// perform search directly
+				var bloomSingleSearch = LogService.startBenchmark('Search with Bloomfilter (single thread)');
 				for(var i = 0; i < self.bloomDataset.length; i++) {
 					if(self.bloomDataset[i].test(term)) {
 						result.push(self.initialDataset[i]);
 					}
 				}
-				console.log('Bloom search took ' + (new Date().getTime() - startBloom) + 'ms and found ' + result.length + ' results');
+				LogService.stopBenchmark(bloomSingleSearch);
 
 				self.dataset = SearchService.limit(result, MAX_SEARCH_RESULTS);
 			}
@@ -135,13 +142,11 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 		self.logVisible = !self.logVisible;
 	};
 
-	// get all categories for UI
-	self.categories = SearchService.categories;
+	self.clearLog = function() {
+		LogService.messages = '';
+	};
 
-	// get federals states for UI
-	self.federalStates = SearchService.federalStates;
-
-	// receive event from WebWorkers when they retrieved a result
+	// receive event from WebWorkers when they retrieved a result - handled here since we display it in the UI
 	// TODO: Simplify!
 	$scope.$on('BLOOM_FILTER_WORKERS_RESULT', function(event, workerData) {
 		BloomSearchService.workerCount++;
@@ -155,7 +160,8 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 		if(BloomSearchService.workerCount >= 4) {
 			// all workers will return their workerResults in an array so merge them
 			var dataset = BloomSearchService.mergeBloomResults(self.bloomWorkerResults);
-			console.log('All results received - Bloom WebWorker search took ' + (new Date().getTime() - this.startSearch) + 'ms and found ' + dataset.length + ' results');
+			LogService.stopBenchmark(self.bloomWebWorkerSearch);
+
 			self.dataset = SearchService.limit(self.bloomWorkerResults, MAX_SEARCH_RESULTS);
 		}
 
@@ -165,6 +171,6 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 	
 
 	// Initialize controller
-	self.init();
+	self.init(true);
 
 }]);

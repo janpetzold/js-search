@@ -5,89 +5,103 @@
 		<link rel="stylesheet" type="text/css" href="libs/bootstrap/dist/css/bootstrap.css">
 		<link rel="stylesheet" type="text/css" href="css/search.css">
 	</head>
-	<body class="container">
+	<body class="container-fluid">
 		<div ng-controller="SearchController as searchCtrl">
-			<h1 ng-cloak>Suche in {{searchCtrl.amount}} Datensätzen</h1>
-			<div class="form-inline">
-				<span>Anzahl der Datensätze:</span>
-				<div class="form-group">
-					<label>
-						<input type="radio" ng-model="searchCtrl.amount" value="1000" ng-change="searchCtrl.changeAmount(1000)">1.000
-					</label>
-				</div>
-				<div class="form-group">
-					<label>
-						<input type="radio" ng-model="searchCtrl.amount" value="10000" ng-change="searchCtrl.changeAmount(10000)">10.000
-					</label>
-				</div>
-				<div class="form-group">
-					<label>
-						<input type="radio" ng-model="searchCtrl.amount" value="100000" ng-change="searchCtrl.changeAmount(100000)">100.000
-					</label>
-				</div>
-				<div class="form-group">
-					<label>
-						<input type="radio" ng-model="searchCtrl.amount" value="250000" ng-change="searchCtrl.changeAmount(250000)">250.000
-					</label>
-				</div>
-				<div class="form-group">
-					<label>
-						<input type="radio" ng-model="searchCtrl.amount" value="500000" ng-change="searchCtrl.changeAmount(500000)">500.000
-					</label>
-				</div>
-			</div>
+			<h1>
+				<code>js-search</code>
+			</h1>
+			<p>Testanwendung zur Suche in größeren Datenmengen mit JavaScript</p>
 
-			<div class="text-right">
-				<div class="input-group search-field text-right">
-		  			<input type="text" class="form-control" placeholder="Suchbegriff" 
-		  				ng-model="searchCtrl.term"
-		  				ng-change="searchCtrl.search(searchCtrl.term)">
-		  			<span class="input-group-addon">
-		  				<span class="glyphicon glyphicon-search"></span>		
-					</span>
-				</div>
-			</div>
+			<div class="row">
+				<div class="col-sm-6 js-search-settings">
+					<!-- Search box -->
+					<div id="js-search-box" class="text-right">
+						<div class="input-group search-field text-right">
+							<input type="text" class="form-control" placeholder="Suchbegriff"
+								   ng-model="searchCtrl.term"
+								   ng-change="searchCtrl.search(searchCtrl.term)">
+							<span class="input-group-addon">
+								<span class="glyphicon glyphicon-search"></span>
+							</span>
+						</div>
+					</div>
 
-			<div class="form-inline">
-				<span>Suchverfahren:</span>
-				<div class="form-group">
-					<label>
-						<input type="radio" ng-model="searchCtrl.type" value="Angular" 
-							ng-change="searchCtrl.changeType('Angular')"
-							ng-disabled="searchCtrl.amount > 100000">Standardsuche
-					</label>
-				</div>
-				<div class="form-group">
-					<label>
-						<input type="radio" ng-model="searchCtrl.type" value="Fuse" 
-							ng-change="searchCtrl.changeType('Fuse')"
-							ng-disabled="searchCtrl.amount > 100000">Ähnlichkeitssuche
-					</label>
-				</div>
-				<div class="form-group">
-					<label>
-						<input type="radio" ng-model="searchCtrl.type" value="Bloomfilter" ng-change="searchCtrl.changeType('Bloomfilter')">Bloomfilter
-					</label>
-				</div>
-			</div>
+					<!-- search method -->
+					<div class="form-inline">
+						<label for="js-search-method" class="setting-label">Suchverfahren:</label>
+						<div class="form-group">
+							<label>
+								<input type="radio" id="js-search-method" ng-model="searchCtrl.type" value="Angular"
+									   ng-change="searchCtrl.changeType('Angular')">Standard
+							</label>
+						</div>
+						<div class="form-group">
+							<label>
+								<input type="radio" ng-model="searchCtrl.type" value="Fuse"
+									   ng-change="searchCtrl.changeType('Fuse')"
+									   ng-disabled="searchCtrl.amount > 100000">Ähnlichkeit
+							</label>
+						</div>
+						<div class="form-group">
+							<label>
+								<input type="radio" ng-model="searchCtrl.type" value="Bloomfilter" ng-change="searchCtrl.changeType('Bloomfilter')">Bloom
+							</label>
+						</div>
+						<div class="form-group" ng-show="searchCtrl.type === 'Bloomfilter'">
+							<label>
+								<input type="checkbox" ng-model="searchCtrl.webworkers" ng-change="searchCtrl.changeType('Bloomfilter')">WebWorker
+							</label>
+						</div>
+					</div>
 
-			<div class="checkbox" ng-show="searchCtrl.type === 'Bloomfilter'">
-				<label>
-					<input type="checkbox" ng-model="searchCtrl.webworkers">Webworker
-				</label>
-			</div>
+					<!-- set amount of data -->
+					<div class="form-inline">
+						<label for="js-search-amount" class="setting-label">Datensätze:</label>
+						<div class="form-group">
+							<label>
+								<input type="radio" id="js-search-amount" ng-model="searchCtrl.amount" value="1000" ng-change="searchCtrl.changeAmount(1000)">1.000
+							</label>
+						</div>
+						<div class="form-group">
+							<label>
+								<input type="radio" ng-model="searchCtrl.amount" value="10000" ng-change="searchCtrl.changeAmount(10000)">10.000
+							</label>
+						</div>
+						<div class="form-group">
+							<label>
+								<input type="radio" ng-model="searchCtrl.amount" value="100000" ng-change="searchCtrl.changeAmount(100000)">100.000
+							</label>
+						</div>
+						<div class="form-group">
+							<label>
+								<input type="radio" ng-model="searchCtrl.amount" value="250000" ng-change="searchCtrl.changeAmount(250000)">250.000
+							</label>
+						</div>
+						<div class="form-group">
+							<label>
+								<input type="radio" ng-model="searchCtrl.amount" value="500000" ng-change="searchCtrl.changeAmount(500000)">500.000
+							</label>
+						</div>
+					</div>
+				</div>
 
-			<a ng-click="searchCtrl.toggleLog()" ng-if="!searchCtrl.logVisible" class="link">Show log output</a>
-			<a ng-click="searchCtrl.toggleLog()" ng-if="searchCtrl.logVisible" class="link">Hide log output</a>
-			<textarea readonly="true" ng-if="searchCtrl.logVisible" ng-cloak>{{searchCtrl.log.messages}}</textarea>
+				<div class="col-sm-6 text-right" ng-cloak>
+					<div id="js-search-log" ng-if="searchCtrl.logVisible" ng-bind-html="searchCtrl.log.messages"></div>
+					<a ng-click="searchCtrl.clearLog()" ng-if="searchCtrl.logVisible" class="small-link">Clear log output</a>
+					<a ng-click="searchCtrl.toggleLog()" ng-if="!searchCtrl.logVisible" class="small-link">Show log output</a>
+					<a ng-click="searchCtrl.toggleLog()" ng-if="searchCtrl.logVisible" class="small-link">Hide log output</a>
+				</div>
+
+			</div>
 			
-			<h4 ng-cloak>Ergebnisse (insgesamt {{searchCtrl.dataset.length}}):</h4>
+			<h4 ng-cloak>Ergebnisse (insgesamt {{searchCtrl.dataset.length}})</h4>
 
 			<table class="table table-striped table-bordered table-condensed">
 				<tr>
 					<th>Nachname</th>
 					<th>Vorname</th>
-					<th>Straße und Hausnummer</th>
+					<th>Straße</th>
+					<th>Nr.</th>
 					<th>PLZ</th>
 					<th>Stadt</th>
 					<th>Bundesland</th>
@@ -97,7 +111,7 @@
 				</tr>
 
 				<tr ng-show="!searchCtrl.dataset">
-					<td colspan="9" class="text-center">Datensätze werden geladen...</td>
+					<td colspan="10" class="text-center">Datensätze werden geladen...</td>
 				</tr>
 
 				<!--<tr ng-repeat="entry in searchCtrl.dataset | match:searchCtrl.term track by entry.id">-->
@@ -105,11 +119,12 @@
 					<td ng-bind="::entry.lastName"></td>
 					<td ng-bind="::entry.firstName"></td>
 					<td ng-bind="::entry.street"></td>
-					<td ng-bind="::entry.zipCode"></td>
+					<td ng-bind="::entry.houseNumber"></td>
+					<td ng-bind="::entry.zip"></td>
 					<td ng-bind="::entry.city"></td>
 					<td ng-bind="::entry.stateName"></td>
-					<td ng-bind="::entry.emailAddress"></td>
-					<td ng-bind="::entry.phoneNumber"></td>
+					<td ng-bind="::entry.email"></td>
+					<td ng-bind="::entry.phone"></td>
 					<td ng-bind="::entry.dateOfBirthFormatted"></td>
 				</tr>
 			</table>
@@ -119,6 +134,7 @@
 		</div>
 
 		<script type="text/javascript" src="libs/angular/angular.js"></script>
+		<script type="text/javascript" src="libs/angular-sanitize/angular-sanitize.js"></script>
 		<script type="text/javascript" src="libs/fuse.js/src/fuse.js"></script>
 		<script type="text/javascript" src="libs/bloomfilter/bloomfilter.js"></script>
 

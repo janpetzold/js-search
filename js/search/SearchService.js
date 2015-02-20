@@ -1,16 +1,5 @@
-angular.module('search').factory('SearchService', function SearchService() {
+angular.module('search').factory('SearchService', ['LogService', function SearchService(LogService) {
 	return {
-		categories: {
-			'lastName': true,
-			'firstName': true,
-			'street': true,
-			'zipCode': true,
-			'city': true,
-			'stateName': true,
-			'emailAddress': true,
-			'phone': true,
-			'dateOfBirthFormatted': true,
-		},
 		federalStates: {
 			'BW': 'Baden-Württemberg',
 			'BY': 'Bayern', 
@@ -29,6 +18,32 @@ angular.module('search').factory('SearchService', function SearchService() {
 			'SH': 'Schleswig-Holstein', 
 			'TH': 'Thüringen'
 		},
+		parseJson: function(data) {
+			var dataLength = data.length;
+			var parsedData = [];
+			for (var i = 0; i < dataLength; i++) {
+				var item = {};
+				// use clear identifiers for the data here
+				item.id = data[i].id;
+				item.lastName = data[i].ln;
+				item.firstName = data[i].fn;
+				item.street = data[i].st;
+				item.houseNumber = data[i].hn;
+				item.zip = data[i].zi;
+				item.city = data[i].ci;
+				item.stateName = this.federalStates[data[i].sa];
+				item.email = data[i].ma;
+				item.phone = data[i].ph;
+				item.dateOfBirthFormatted = this.getFormattedDate(data[i].bi);
+
+				parsedData.push(item);
+
+				if(i != 0 && i % 50000 == 0) {
+					//LogService.addMessage('50000 datasets parsed and counting...<br />');
+				}
+			}
+			return parsedData;
+		},
 		pad: function(value, maxLength) {
 		  	value = value + '';
 
@@ -46,4 +61,4 @@ angular.module('search').factory('SearchService', function SearchService() {
 			return this.pad(date.getDate(), 2) + '.' + this.pad((date.getMonth() + 1), 2) + '.' + date.getFullYear();
 		}
 	}
-});
+}]);

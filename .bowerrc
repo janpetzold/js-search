@@ -7,7 +7,7 @@
   ],
   "license": "MIT",
   "private": true,
-  "directory": "libs"
+  "directory": "libs",
   "ignore": [
     "**/.*",
     "node_modules",

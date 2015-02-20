@@ -1,1 +1,1 @@
-angular.module('search', []);
+angular.module('search', ['ngSanitize']);

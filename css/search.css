@@ -1,13 +1,51 @@
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+	display: none !important;
+}
+
 textarea {
 	text-align: left;
 	width: 100%;
 	height: 8em;
 	border: 1px solid #DFDFDF;
-	font-size: 10px;
+	font-size: 0.9em;
 }
-.link:hover {
+
+label {
+	font-weight: normal;
+}
+
+.small-link {
+	font-size: 0.8em;
+}
+
+.small-link:hover {
 	cursor: pointer;
 }
+
+.js-search-settings .setting-label {
+	min-width: 8em;
+}
+
+.js-search-settings input[type="radio"], .js-search-settings input[type="checkbox"] {
+	margin: 0 0.3em 0 0.2em;
+}
+
+#js-search-box {
+	margin: 0.5em 0 0.5em 0;
+}
+
+#js-search-options {
+	margin-top: 0;
+}
+
+#js-search-log {
+	text-align: left;
+	margin-top: 6px;
+	border: 1px solid #DFDFDF;
+	height: 120px;
+	overflow-y: scroll;
+}
+
 .search-field {
-	width: 25%;
+	width: 100%;
 }

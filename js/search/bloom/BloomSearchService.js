@@ -1,13 +1,12 @@
-angular.module('search').factory('BloomSearchService', ['$rootScope', function BloomSearchService($rootScope) {
+angular.module('search').factory('BloomSearchService', ['$rootScope', 'LogService', function BloomSearchService($rootScope, LogService) {
 	return {
 		workerCount: 0,
 		workerResults: [],
-		startSearch: null,
 
 		workers: [],
 
 		initWorkerArray: function(dataset) {
-			var startWebWorker = new Date().getTime();
+			var bloomRampUpBench = LogService.startBenchmark('Ramp-up WebWorkers');
 
 			// Initialize the WebWorker
 			var worker1 = new Worker('js/search/bloom/BloomSearchWorker.js');
@@ -20,18 +19,18 @@ angular.module('search').factory('BloomSearchService', ['$rootScope', function B
 			// add event listener to WebWorkers
 			this.addEventListenersForWorkers(this.workers);
 
-			console.log('Ramp-up WebWorkers took ' + (new Date().getTime() - startWebWorker) + 'ms');
+			LogService.stopBenchmark(bloomRampUpBench);
 
 			var slicedDataset = this.getSlicedDataset(dataset);
 
-			var startMessaging = new Date().getTime();
+			var bloomMessagingBench = LogService.startBenchmark('Sending data to WebWorkers');
 
 			worker1.postMessage(this.getWebWorkerInitMessage(0, slicedDataset));
 			worker2.postMessage(this.getWebWorkerInitMessage(1, slicedDataset));
 			worker3.postMessage(this.getWebWorkerInitMessage(2, slicedDataset));
 			worker4.postMessage(this.getWebWorkerInitMessage(3, slicedDataset));
 
-			console.log('Messaging to WebWorkers took ' + (new Date().getTime() - startMessaging) + 'ms');
+			LogService.startBenchmark(bloomMessagingBench);
 		},
 
 		addEventListenersForWorkers: function(workers) {
@@ -44,27 +43,10 @@ angular.module('search').factory('BloomSearchService', ['$rootScope', function B
 		resetWorkerCount: function() {
 			this.workerCount = 0;
 			this.workerResults = [];
-			this.startSearch = new Date().getTime();
 		},
 
 		handleResult: function(workerResult) {		
 			$rootScope.$broadcast('BLOOM_FILTER_WORKERS_RESULT', workerResult);
-			/*
-			var self = this;
-			self.workerCount++;
-
-			if(workerResult.data.length > 0) {
-				self.workerResults.push(workerResult.data);
-			}
-		
-			if(this.workerCount >= 4) {
-				// all workers will return their workerResults in an array so merge them
-				var dataset = self.mergeBloomResults(self.workerResults);
-				$rootScope.$broadcast('BLOOM_FILTER_WORKERS_RESULT', dataset);
-
-				console.log('All results received - Bloom WebWorker search took ' + (new Date().getTime() - this.startSearch) + 'ms and found ' + dataset.length + ' results');
-			}
-			*/
 		},
 
 		handleError: function() {
@@ -79,16 +61,28 @@ angular.module('search').factory('BloomSearchService', ['$rootScope', function B
 			var result = [],
 				datasetLength = dataset.length;
 
+			// determine bit size for BloomFilter - 2% error tolerance are generally fine
+			var bits = datasetLength * 5;
+
+			// be more generous for bigger result sets - works pretty well
+			if(datasetLength > 99999) {
+				bits = datasetLength / 100;
+			}
+
 			for(var i = 0; i < datasetLength; i++) {
-				var bloom = new BloomFilter(32 * 256, 6);
+				if(i != 0 && i % 50000 == 0) {
+					//LogService.addMessage('50000 BloomFilters generated and counting...</br>');
+				}
+
+				var bloom = new BloomFilter(bits, 6);
 
 				bloom.add(dataset[i].lastName);
 				bloom.add(dataset[i].firstName);
 				bloom.add(dataset[i].street);
-				bloom.add(dataset[i].zipCode);
+				bloom.add(dataset[i].zip);
 				bloom.add(dataset[i].city);
 				bloom.add(dataset[i].stateName);
-				bloom.add(dataset[i].emailAddress);
+				bloom.add(dataset[i].email);
 				bloom.add(dataset[i].phone);
 				bloom.add(dataset[i].dateOfBirthFormatted);
 

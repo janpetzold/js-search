@@ -1,3 +1,7 @@
+.idea
+*.iml
 libs/angular
+libs/angular-sanitize
 libs/bootstrap
 libs/fuse.js
+libs/jquery
