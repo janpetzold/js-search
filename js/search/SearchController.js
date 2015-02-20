@@ -98,7 +98,7 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 	self.search = function(term) {
 		// Determine current type and search based on that choice
 		if(self.type === 'Angular') {
-			var angularSearch = LogService.startBenchmark('Search with Angular');
+			var angularSearch = LogService.startBenchmark('Search with Angular for term ' + term);
 			var result = AngularFilterService.filterItems(self.initialDataset, term);
 			LogService.stopBenchmark(angularSearch);
 
@@ -107,7 +107,7 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 			if(self.term === '') {
 				self.dataset = self.initialDataset;
 			} else {
-				var fuseSearch = LogService.startBenchmark('Search with fuse.js');
+				var fuseSearch = LogService.startBenchmark('Search with fuse.js for term ' + term);
 				var result = self.fuseDataset.search(term);
 				LogService.stopBenchmark(fuseSearch);
 
@@ -121,11 +121,11 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 				BloomSearchService.resetWorkerCount();
 
 				// init search via WebWorker
-				self.bloomWebWorkerSearch = LogService.startBenchmark('Search with Bloomfilter (WebWorker)');
+				self.bloomWebWorkerSearch = LogService.startBenchmark('Search with Bloomfilter (WebWorker) for term ' + term);
 				BloomSearchService.search(term);
 			} else {
 				// perform search directly
-				var bloomSingleSearch = LogService.startBenchmark('Search with Bloomfilter (single thread)');
+				var bloomSingleSearch = LogService.startBenchmark('Search with Bloomfilter (single thread) for term ' + term);
 				for(var i = 0; i < self.bloomDataset.length; i++) {
 					if(self.bloomDataset[i].test(term)) {
 						result.push(self.initialDataset[i]);
