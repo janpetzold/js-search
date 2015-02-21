@@ -123,7 +123,8 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 			} else {
 				// perform search directly
 				var bloomSingleSearch = LogService.startBenchmark('Search with Bloomfilter (single thread) for term ' + term);
-				for(var i = 0; i < self.bloomDataset.length; i++) {
+				var bloomLength = self.bloomDataset.length;
+				for(var i = 0; i < bloomLength; i++) {
 					if(self.bloomDataset[i].test(term)) {
 						result.push(self.initialDataset[i]);
 					}
