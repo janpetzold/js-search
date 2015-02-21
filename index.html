@@ -94,7 +94,7 @@
 
 			</div>
 			
-			<h4 ng-cloak>Ergebnisse (insgesamt {{searchCtrl.dataset.length}})</h4>
+			<h4 ng-cloak>Ergebnisse (insgesamt {{searchCtrl.resultLength}})</h4>
 
 			<table class="table table-striped table-bordered table-condensed">
 				<tr>
@@ -114,7 +114,6 @@
 					<td colspan="10" class="text-center">Datensätze werden geladen...</td>
 				</tr>
 
-				<!--<tr ng-repeat="entry in searchCtrl.dataset | match:searchCtrl.term track by entry.id">-->
 				<tr ng-repeat="entry in searchCtrl.dataset track by entry.id">
 					<td ng-bind="::entry.lastName"></td>
 					<td ng-bind="::entry.firstName"></td>

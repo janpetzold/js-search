@@ -14,13 +14,16 @@ function handleMessage(e) {
 
 		// create Bloom filter for dataset
 		var datasetLength = originalDataset.length;
+		console.log(datasetLength);
 
 		// determine bit size for BloomFilter - 2% error tolerance are generally fine
-		var bits = datasetLength * 5;
+		var bits = datasetLength * 8;
 
-		// be more generous for bigger result sets - works pretty well
-		if(datasetLength > 99999) {
-			bits = datasetLength / 100;
+		// be far more restrictive for bigger result sets - works pretty well
+		// WebWorkers seem to have much stricter memory limitations, we need to take this into consideration
+		if(datasetLength > 24999) {
+			bits = Math.ceil(datasetLength / 25);
+			console.log(bits);
 		}
 
 		for(var i = 0; i < datasetLength; i++) {

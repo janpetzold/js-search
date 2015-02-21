@@ -62,9 +62,9 @@ angular.module('search').factory('BloomSearchService', ['$rootScope', 'LogServic
 				datasetLength = dataset.length;
 
 			// determine bit size for BloomFilter - 2% error tolerance are generally fine
-			var bits = datasetLength * 5;
+			var bits = datasetLength * 8;
 
-			// be more generous for bigger result sets - works pretty well
+			// be far more restrictive for bigger result sets - works pretty well
 			if(datasetLength > 99999) {
 				bits = datasetLength / 100;
 			}

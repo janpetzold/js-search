@@ -8,6 +8,7 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 
 	// Default search volume
 	self.amount = 1000;
+	self.resultLength = 1000;
 
 	// Default search type
 	self.type = 'Angular';
@@ -99,19 +100,15 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 		// Determine current type and search based on that choice
 		if(self.type === 'Angular') {
 			var angularSearch = LogService.startBenchmark('Search with Angular for term ' + term);
-			var result = AngularFilterService.filterItems(self.initialDataset, term);
+			self.dataset = AngularFilterService.filterItems(self.initialDataset, term);
 			LogService.stopBenchmark(angularSearch);
-
-			self.dataset = SearchService.limit(result, MAX_SEARCH_RESULTS);
 		} else if(self.type === 'Fuse') {
 			if(self.term === '') {
 				self.dataset = self.initialDataset;
 			} else {
 				var fuseSearch = LogService.startBenchmark('Search with fuse.js for term ' + term);
-				var result = self.fuseDataset.search(term);
+				self.dataset = self.fuseDataset.search(term);
 				LogService.stopBenchmark(fuseSearch);
-
-				self.dataset = SearchService.limit(result, MAX_SEARCH_RESULTS);
 			}
 		} else if(self.type === 'Bloomfilter') {
 			var result = [];
@@ -132,10 +129,13 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 					}
 				}
 				LogService.stopBenchmark(bloomSingleSearch);
-
-				self.dataset = SearchService.limit(result, MAX_SEARCH_RESULTS);
+				self.dataset = result;
 			}
 		}
+
+		self.resultLength = self.dataset.length;
+		// limit result for display since we don't have pagination and don't want to run into rendering issues
+		self.dataset = SearchService.limit(self.dataset, MAX_SEARCH_RESULTS);
 	};
 
 	self.toggleLog = function() {
@@ -162,6 +162,7 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 			var dataset = BloomSearchService.mergeBloomResults(self.bloomWorkerResults);
 			LogService.stopBenchmark(self.bloomWebWorkerSearch);
 
+			self.resultLength = self.bloomWorkerResults.length;
 			self.dataset = SearchService.limit(self.bloomWorkerResults, MAX_SEARCH_RESULTS);
 		}
 
