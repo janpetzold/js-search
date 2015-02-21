@@ -42,6 +42,7 @@ angular.module('search').factory('SearchService', ['LogService', function Search
 					//LogService.addMessage('50000 datasets parsed and counting...<br />');
 				}
 			}
+			data = null;
 			return parsedData;
 		},
 		pad: function(value, maxLength) {
