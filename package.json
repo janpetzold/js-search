@@ -1,0 +1,21 @@
+{
+  "name": "js-search",
+  "version": "1.0.0",
+  "description": "Simple JS app for testing different approaches for client-side search",
+  "main": "index.html",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/janpetzold/js-search.git"
+  },
+  "keywords": [
+    "JavaScript",
+    "search",
+    "performance"
+  ],
+  "author": "Jan Petzold",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/janpetzold/js-search/issues"
+  },
+  "homepage": "http://janpetzold.github.io/js-search/"
+}
