@@ -1,4 +1,4 @@
-angular.module('search').factory('SearchService', ['LogService', function SearchService(LogService) {
+angular.module('search').factory('SearchService', ['LogService', function SearchService() {
 	return {
 		federalStates: {
 			'BW': 'Baden-Württemberg',
@@ -37,10 +37,6 @@ angular.module('search').factory('SearchService', ['LogService', function Search
 				item.dateOfBirthFormatted = this.getFormattedDate(data[i].bi);
 
 				parsedData.push(item);
-
-				if(i != 0 && i % 50000 == 0) {
-					//LogService.addMessage('50000 datasets parsed and counting...<br />');
-				}
 			}
 			data = null;
 			return parsedData;
@@ -61,5 +57,5 @@ angular.module('search').factory('SearchService', ['LogService', function Search
 			var date = new Date(isoDate);
 			return this.pad(date.getDate(), 2) + '.' + this.pad((date.getMonth() + 1), 2) + '.' + date.getFullYear();
 		}
-	}
+	};
 }]);

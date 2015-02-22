@@ -42,7 +42,7 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 	 * Set the dataset that builds the base for our search
 	 *
 	 * @param data The data (JSON)
-	 * @param parse {boolean} dtermines whether the data needs to be parsed
+	 * @param parse {boolean} determines whether the data needs to be parsed
 	 */
 	self.setDataset = function(data, parse) {
 		// set correct federal states and format birthday
@@ -160,7 +160,7 @@ angular.module('search').controller('SearchController', ['$scope', '$http', 'Sea
 		
 		if(BloomSearchService.workerCount >= 4) {
 			// all workers will return their workerResults in an array so merge them
-			var dataset = BloomSearchService.mergeBloomResults(self.bloomWorkerResults);
+			BloomSearchService.mergeBloomResults(self.bloomWorkerResults);
 			LogService.stopBenchmark(self.bloomWebWorkerSearch);
 
 			self.resultLength = self.bloomWorkerResults.length;

@@ -1,15 +1,13 @@
 /**
  * This search service and some related methods have been extracted from the Angular source code to make it
- * available via service.
+ * available via service. Also simplifies debugging.
  */
 angular.module('search').factory('AngularFilterService', function AngularFilterService() {
 	var createPredicateFn = function(expression, comparator, matchAgainstAnyProp) {
 		var shouldMatchPrimitives = isObject(expression) && ('$' in expression);
 		var predicateFn;
 
-		if (comparator === true) {
-			comparator = equals;
-		} else if (!isFunction(comparator)) {
+		if (!isFunction(comparator)) {
 			comparator = function(actual, expected) {
 			  	if (isObject(actual) || isObject(expected)) {
 			   		// Prevent an object to be considered equal to a string like `'[object'`
@@ -123,5 +121,5 @@ angular.module('search').factory('AngularFilterService', function AngularFilterS
 
 		    return items.filter(predicateFn);
 		}
-	}
+	};
 });

@@ -1,5 +1,6 @@
 angular.module('search').factory('FuseService', function FuseService() {
 	return {
+		// default fuse options
 		fuseOptions: {
 	  		caseSensitive: false,
 	  		includeScore: false,
@@ -13,5 +14,5 @@ angular.module('search').factory('FuseService', function FuseService() {
 		initFuseDataset: function(dataset) {
 			return new Fuse(dataset, this.fuseOptions);
 		}
-	}
+	};
 });
