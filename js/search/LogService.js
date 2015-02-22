@@ -5,7 +5,7 @@ angular.module('search').factory('LogService', function LogService() {
 			return {
 				'name': name,
 				'start': new Date().getTime()
-			}
+			};
 		},
 		stopBenchmark: function(benchmark) {
 			var stop = new Date().getTime() - benchmark.start;
@@ -19,5 +19,5 @@ angular.module('search').factory('LogService', function LogService() {
 			var logWindow = document.getElementById("js-search-log");
 			logWindow.scrollTop = logWindow.scrollHeight;
 		}
-	}
+	};
 });

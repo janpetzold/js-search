@@ -70,10 +70,6 @@ angular.module('search').factory('BloomSearchService', ['$rootScope', 'LogServic
 			}
 
 			for(var i = 0; i < datasetLength; i++) {
-				if(i != 0 && i % 50000 == 0) {
-					//LogService.addMessage('50000 BloomFilters generated and counting...</br>');
-				}
-
 				var bloom = new BloomFilter(bits, 6);
 
 				bloom.add(dataset[i].lastName);
@@ -104,14 +100,12 @@ angular.module('search').factory('BloomSearchService', ['$rootScope', 'LogServic
 		getSlicedDataset: function(dataset) {
 			var datasetLength = dataset.length;
 
-			var slicedDataset = [
+			return [
 				dataset.slice(0, datasetLength / 4),
 				dataset.slice(datasetLength / 4, datasetLength / 2),
 				dataset.slice(datasetLength / 2, (datasetLength / 4) * 3),
-				dataset.slice((datasetLength / 4) * 3, datasetLength),
+				dataset.slice((datasetLength / 4) * 3, datasetLength)
 			];
-
-			return slicedDataset;
 		},
 
 		getWebWorkerInitMessage: function(offset, dataset) {
@@ -130,5 +124,5 @@ angular.module('search').factory('BloomSearchService', ['$rootScope', 'LogServic
 			}
 			return result;
 		}
-	}
+	};
 }]);

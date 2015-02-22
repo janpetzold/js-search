@@ -10,14 +10,14 @@
 			<h1>
 				<code>js-search</code>
 			</h1>
-			<p>Testanwendung zur Suche in größeren Datenmengen mit JavaScript</p>
+			<p>Testing the search in bigger datasets with JavaScript</p>
 
 			<div class="row">
 				<div class="col-sm-6 js-search-settings">
 					<!-- Search box -->
 					<div id="js-search-box" class="text-right">
 						<div class="input-group search-field text-right">
-							<input type="text" class="form-control" placeholder="Suchbegriff"
+							<input type="text" class="form-control" placeholder="search term"
 								   ng-model="searchCtrl.term"
 								   ng-change="searchCtrl.search(searchCtrl.term)">
 							<span class="input-group-addon">
@@ -28,23 +28,23 @@
 
 					<!-- search method -->
 					<div class="form-inline">
-						<label for="js-search-method" class="setting-label">Suchverfahren:</label>
+						<label for="js-search-method" class="setting-label">Method:</label>
 						<div class="form-group">
 							<label>
 								<input type="radio" id="js-search-method" ng-model="searchCtrl.type" value="Angular"
-									   ng-change="searchCtrl.changeType('Angular')">Standard
+									   ng-change="searchCtrl.changeType('Angular')">Angular
 							</label>
 						</div>
 						<div class="form-group">
 							<label>
 								<input type="radio" ng-model="searchCtrl.type" value="Fuse"
 									   ng-change="searchCtrl.changeType('Fuse')"
-									   ng-disabled="searchCtrl.amount > 100000">Ähnlichkeit
+									   ng-disabled="searchCtrl.amount > 100000">Fuzzy
 							</label>
 						</div>
 						<div class="form-group">
 							<label>
-								<input type="radio" ng-model="searchCtrl.type" value="Bloomfilter" ng-change="searchCtrl.changeType('Bloomfilter')">Bloom
+								<input type="radio" ng-model="searchCtrl.type" value="Bloomfilter" ng-change="searchCtrl.changeType('Bloomfilter')">Bloom-Filter
 							</label>
 						</div>
 						<div class="form-group" ng-show="searchCtrl.type === 'Bloomfilter'">
@@ -56,7 +56,7 @@
 
 					<!-- set amount of data -->
 					<div class="form-inline">
-						<label for="js-search-amount" class="setting-label">Datensätze:</label>
+						<label for="js-search-amount" class="setting-label">Datasets:</label>
 						<div class="form-group">
 							<label>
 								<input type="radio" id="js-search-amount" ng-model="searchCtrl.amount" value="1000" ng-change="searchCtrl.changeAmount(1000)">1.000
@@ -94,24 +94,25 @@
 
 			</div>
 			
-			<h4 ng-cloak>Ergebnisse (insgesamt {{searchCtrl.resultLength}})</h4>
+			<h4 ng-cloak>Results (in total {{searchCtrl.resultLength}})</h4>
+			<p ng-if="searchCtrl.resultLength > 1000">Only the first 1000 results are shown.</p>
 
 			<table class="table table-striped table-bordered table-condensed">
 				<tr>
-					<th>Nachname</th>
-					<th>Vorname</th>
-					<th>Straße</th>
-					<th>Nr.</th>
-					<th>PLZ</th>
-					<th>Stadt</th>
-					<th>Bundesland</th>
-					<th>E-Mail</th>
-					<th>Telefon</th>
-					<th>Geburtstag</th>
+					<th>last name</th>
+					<th>first name</th>
+					<th>street</th>
+					<th>no</th>
+					<th>zip</th>
+					<th>city</th>
+					<th>state</th>
+					<th>mail</th>
+					<th>phone</th>
+					<th>birthday</th>
 				</tr>
 
 				<tr ng-show="!searchCtrl.dataset">
-					<td colspan="10" class="text-center">Datensätze werden geladen...</td>
+					<td colspan="10" class="text-center">Loading initial data...</td>
 				</tr>
 
 				<tr ng-repeat="entry in searchCtrl.dataset track by entry.id">
@@ -127,8 +128,6 @@
 					<td ng-bind="::entry.dateOfBirthFormatted"></td>
 				</tr>
 			</table>
-
-			<p ng-show="searchCtrl.dataset.length === 1000">Es wurden noch weitere Ergebnisse gefunden. Bitte geben Sie einen präziseren Suchbegriff ein.</p>
 
 		</div>
 
@@ -147,4 +146,4 @@
 		<script type="text/javascript" src="js/search/SearchService.js"></script>
 		<script type="text/javascript" src="js/search/LogService.js"></script>
 	</body>
-</head>
+</html>
